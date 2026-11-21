@@ -1971,6 +1971,9 @@
       <button class="st-tool" id="lightBtn" title="Edge light (L)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>
       </button>
+      <button class="st-tool" id="fsBtn" title="Pantalla completa (F)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+      </button>
     </div>
   </footer>
 
@@ -1988,7 +1991,7 @@
     <div class="pane on" id="paneStyle">
       <div class="style-grid" id="styleGrid"></div>
       <div class="sheet-note" id="styleNote">
-        <b>Timing.</b> Word-level where LRCLIB has it, otherwise paced across the line and labelled <b>estimated</b> in the footer. <b>Shift+S</b> cycles style, <b>Shift+L</b> cycles light, <b>,</b> and <b>.</b> nudge the lyrics ±0.1 s.
+        <b>Timing.</b> Word-level where LRCLIB has it, otherwise paced across the line and labelled <b>estimated</b> in the footer. <b>Shift+S</b> cycles style, <b>Shift+L</b> cycles light, <b>F</b> fullscreen, <b>,</b> and <b>.</b> nudge the lyrics ±0.1 s.
       </div>
     </div>
 
@@ -4308,10 +4311,21 @@
     kick();
   }
   function stageClose() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     $("stage").classList.remove("open");
     $("stage").setAttribute("aria-hidden", "true");
     $("lyrBtn").classList.remove("on");
   }
+  function stageFullscreen() {
+    if (document.fullscreenElement) { document.exitFullscreen().catch(() => {}); return; }
+    const el = $("stage");
+    if (!el.requestFullscreen) { toast("Pantalla completa no disponible"); return; }
+    el.requestFullscreen().catch(() => toast("Pantalla completa no disponible"));
+  }
+  if ($("fsBtn")) $("fsBtn").addEventListener("click", stageFullscreen);
+  document.addEventListener("fullscreenchange", () => {
+    if ($("fsBtn")) $("fsBtn").classList.toggle("on", !!document.fullscreenElement);
+  });
   function stageToggle() {
     if ($("stage").classList.contains("open")) stageClose(); else stageOpen();
   }
@@ -5223,7 +5237,9 @@
       case "r": $("repeat").click(); break;
       case "m": $("mute").click(); break;
       case "l": stageToggle(); break;
+      case "f": stageFullscreen(); break;
       case "escape":
+        if (document.fullscreenElement) break;
         if (sheetIsOpen()) { sheetClose(); break; }
         $("drawer").classList.remove("open");
         stageClose();
